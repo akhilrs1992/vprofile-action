@@ -51,7 +51,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: https://sonarcloud.io
 
-   BUILD_AND_PUBLISH:
+  BUILD_AND_PUBLISH:
     needs: Testing
     runs-on: ubuntu-latest
 
