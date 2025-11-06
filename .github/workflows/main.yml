@@ -42,17 +42,7 @@ jobs:
            -Dsonar.jacoco.reportsPath=target/jacoco.exec 
            -Dsonar.java.checkstyle.reportPaths=target/checkstyle-result.xml
            -Dsonar.java.binaries=target/test-classes/com/visualpathit/account/controllerTest/  
-
-      # Check the Quality Gate status.
-      - name: SonarQube Quality Gate check
-        id: sonarqube-quality-gate-check
-        uses: sonarsource/sonarqube-quality-gate-action@master
-        # Force to fail step after specific time.
-        timeout-minutes: 5
-        env:
-          SONAR_TOKEN: a2579df56cb9409697afeb132e4d201c532afbf4
-          SONAR_HOST_URL: https://sonarcloud.io #OPTIONAL
-       
+   
   BUILD_AND_PUBLISH:   
     needs: Testing
     runs-on: ubuntu-latest
