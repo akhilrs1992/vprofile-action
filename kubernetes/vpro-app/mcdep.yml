@@ -14,7 +14,7 @@ spec:
       labels:
         app: vpromc
     spec:
-      containers:
+    containers:
       - name: vpromc
         image: memcached
         ports:
