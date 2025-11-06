@@ -1,5 +1,8 @@
 name: vprofile actions
-on: workflow_dispatch
+
+on:
+  workflow_dispatch:
+
 env:
   AWS_REGION: us-east-1
   ECR_REPOSITORY: vprofileapp
@@ -18,42 +21,43 @@ jobs:
       - name: Checkstyle
         run: mvn checkstyle:checkstyle
 
-      # Setup java 11 to be default (sonar-scanner requirement as of 5.x)
+      # Setup java 11 (required for sonar-scanner)
       - name: Set Java 11
         uses: actions/setup-java@v3
         with:
-         distribution: 'temurin' # See 'Supported distributions' for available options
-         java-version: '11'
+          distribution: 'temurin'
+          java-version: '11'
 
       # Setup sonar-scanner
       - name: Setup SonarQube
         uses: warchant/setup-sonar-scanner@v7
 
-
-      # Run sonar-scanner
+      # Run sonar-scanner (Correctly formatted)
       - name: SonarQube Scan
-        run: sonar-scanner
-           -Dsonar.host.url=${{ secrets.SONAR_URL }}
-           -Dsonar.login=${{ secrets.SONAR_TOKEN }}
-           -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }}
-           -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
-           -Dsonar.sources=src/
-           -Dsonar.junit.reportsPath=target/surefire-reports/ 
-           -Dsonar.jacoco.reportsPath=target/jacoco.exec 
-           -Dsonar.java.checkstyle.reportPaths=target/checkstyle-result.xml
-           -Dsonar.java.binaries=target/test-classes/com/visualpathit/account/controllerTest/  
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          sonar-scanner \
+            -Dsonar.host.url=${{ secrets.SONAR_URL }} \
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
+            -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }} \
+            -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }} \
+            -Dsonar.sources=src \
+            -Dsonar.junit.reportsPath=target/surefire-reports \
+            -Dsonar.jacoco.reportsPath=target/jacoco.exec \
+            -Dsonar.java.checkstyle.reportPaths=target/checkstyle-result.xml \
+            -Dsonar.java.binaries=target/test-classes/com/visualpathit/account/controllerTest/
 
-      # Check the Quality Gate status.
-      - name: SonarQube Quality Gate check
+      # Check the Quality Gate status
+      - name: SonarQube Quality Gate Check
         id: sonarqube-quality-gate-check
         uses: sonarsource/sonarqube-quality-gate-action@master
-        # Force to fail step after specific time.
         timeout-minutes: 5
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_URL }} #OPTIONAL
-       
-  BUILD_AND_PUBLISH:   
+          SONAR_HOST_URL: ${{ secrets.SONAR_URL }}
+
+  BUILD_AND_PUBLISH:
     needs: Testing
     runs-on: ubuntu-latest
     steps:
@@ -63,12 +67,12 @@ jobs:
       - name: Build & Upload image to ECR
         uses: appleboy/docker-ecr-action@master
         with:
-         access_key: ${{ secrets.AWS_ACCESS_KEY }}
-         secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-         registry: ${{ secrets.REGISTRY }}
-         repo: ${{ env.ECR_REPOSITORY }}
-         region: ${{ env.AWS_REGION }}
-         tags: latest,${{ github.run_number }}
-         daemon_off: false
-         dockerfile: ./Dockerfile
-         context: ./
+          access_key: ${{ secrets.AWS_ACCESS_KEY }}
+          secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          registry: ${{ secrets.REGISTRY }}
+          repo: ${{ env.ECR_REPOSITORY }}
+          region: ${{ env.AWS_REGION }}
+          tags: latest,${{ github.run_number }}
+          daemon_off: false
+          dockerfile: ./Dockerfile
+          context: ./
